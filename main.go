@@ -6,7 +6,10 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 func main() {
@@ -21,16 +24,20 @@ func main() {
 			log.Fatal(err)
 		}
 		for _, file := range files {
-			fmt.Println(file.Name(), file.IsDir())
-
-			cmd := exec.Command(exefile, "-i", wdir+file.Name(), "-vframes", "1", "-s", "640x480", wdir+file.Name()+".png")
-			fmt.Println(cmd)
-			if err := cmd.Run(); err != nil {
-				fmt.Println("Error: ", err)
+			if path.Ext(file.Name()) == ".mp4" {
+				cmd := exec.Command(exefile, "-ss", "00:00:10", "-i", wdir+file.Name(), "-vframes", "100", "-s", "640x480", wdir+fileNameWithoutExtension(file.Name())+".png")
+				fmt.Println(cmd)
+				if err := cmd.Run(); err != nil {
+					fmt.Println("Error: ", err)
+				}
 			}
 		}
 	} else {
 		fmt.Println(err)
 	}
 
+}
+
+func fileNameWithoutExtension(fileName string) string {
+	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
 }
