@@ -16,7 +16,7 @@ func main() {
 	fmt.Printf("ffmpeg Parser - (c) Copyright Com1Software 1992-2024\n")
 	fmt.Printf("Operating System : %s\n", runtime.GOOS)
 	exefile := "/ffmpeg/bin/ffmpeg.exe"
-	wdir := "/tmp/"
+	wdir := "c:/tmp/"
 	xpage := "ffmpeg-parse.htm"
 	if _, err := os.Stat(exefile); err == nil {
 		fmt.Printf("- Parser Detected")
