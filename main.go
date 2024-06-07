@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"io/ioutil"
+        "log"
 )
 
 func main() {
@@ -13,6 +15,13 @@ func main() {
 
 	if CheckForFile(exefile) {
 		fmt.Printf("- Parser Detected")
+	        files, err := ioutil.ReadDir("/tmp/")
+                if err != nil {
+                  log.Fatal(err)
+                }
+                for _, file := range files {
+                     fmt.Println(file.Name(), file.IsDir())
+                }
 	}
 
 }
