@@ -35,7 +35,7 @@ func main() {
 			if path.Ext(file.Name()) == ".mp4" {
 				tfile := wdir + file.Name()
 				tnfile := fixFileName(tfile)
-				cmd := exec.Command(exefile, "-ss", "00:00:10", "-i", tnfile, "-vframes", "100", "-s", "64x48", fileNameWithoutExtension(tnfile)+".png")
+				cmd := exec.Command(exefile, "-ss", "00:00:10", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+".png")
 				fmt.Println(cmd)
 
 				xdata = xdata + "  <A HREF='file:///C:/" + wdir + tnfile + "'> <IMG SRC=" + fileNameWithoutExtension(tnfile) + ".png" + "  ALT=error>  [ " + file.Name() + " ] </A> <BR>"
