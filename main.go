@@ -31,9 +31,9 @@ func main() {
 		xdata = xdata + "<title>ffmpeg Parse for " + wdir + "</title>"
 		xdata = xdata + "</head>"
 		xdata = xdata + "<body>"
-		xdata = xdata + "<H1>ffmpeg Parse for" + wdir + "</H1>"
+		xdata = xdata + "<H1>ffmpeg Parse for " + wdir + "</H1>"
 		for _, file := range files {
-			if path.Ext(file.Name()) == ".mp4" {
+			if ValidFileType(strings.ToLower(path.Ext(file.Name()))) {
 				tfile := wdir + file.Name()
 				tnfile := fixFileName(tfile)
 				cmd := exec.Command(exefile, "-ss", "00:00:01", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"1.png")
@@ -104,4 +104,17 @@ func Openbrowser(url string) error {
 	args = append(args, url)
 
 	return exec.Command(cmd, args...).Start()
+}
+
+func ValidFileType(fileExt string) bool {
+	rtn := false
+	switch {
+	case fileExt == ".mp4":
+		rtn = true
+	case fileExt == ".avi":
+		rtn = true
+	case fileExt == ".wmv":
+		rtn = true
+	}
+	return rtn
 }
