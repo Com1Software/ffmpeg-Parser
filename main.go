@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -16,6 +17,7 @@ func main() {
 	fmt.Printf("ffmpeg Parser - (c) Copyright Com1Software 1992-2024\n")
 	fmt.Printf("Operating System : %s\n", runtime.GOOS)
 	exefile := "/ffmpeg/bin/ffmpeg.exe"
+	exefilea := "/ffmpeg/bin/ffprobe.exe"
 	drive := "c"
 	wdir := drive + ":/tmp/"
 	xpage := "ffmpeg-parse.htm"
@@ -49,6 +51,76 @@ func main() {
 					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
 				}
 				xdata = xdata + "  <A HREF='file:///" + tnfile + "'>  [ " + file.Name() + " ] <BR> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "1.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "2.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "3.png" + "  ALT=error> </A><BR> "
+				//-------------------------------------------------------------------------------------------------
+				bfile := "tmp.bat"
+				bdata := []byte(exefilea + " -i " + tnfile + " -show_entries stream=width,height -of csv=" + fmt.Sprintf("%q", "p=0") + ">tmp.txt")
+				err := os.WriteFile(bfile, bdata, 0644)
+				cmd = exec.Command(bfile)
+				if err = cmd.Run(); err != nil {
+					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+				}
+				dat := []byte("")
+				dat, err = os.ReadFile("tmp.txt")
+				tdata := string(dat)
+				tmp := strings.Split(tdata, ",")
+				xdata = xdata + "Frame width " + tmp[0] + "<BR>"
+				xdata = xdata + "Frame height " + tmp[1] + "<BR>"
+
+				//-------------------------------------------------------------------------------------------------
+				bdata = []byte(exefilea + " -i " + tnfile + " -show_entries format=duration -v quiet -of csv >tmp.txt")
+				err = os.WriteFile(bfile, bdata, 0644)
+				cmd = exec.Command(bfile)
+				if err = cmd.Run(); err != nil {
+					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+				}
+				dat = []byte("")
+				dat, err = os.ReadFile("tmp.txt")
+				tdata = string(dat)
+				tmp = strings.Split(tdata, ",")
+				tmpa := strings.Split(tmp[1], ".")
+				t := tmpa[0]
+				i, _ := strconv.Atoi(t)
+				mc := 0
+				m := 0
+				sc := 0
+				for x := 0; x < i; x++ {
+					mc++
+					sc++
+					if mc > 59 {
+						m++
+						mc = 0
+						sc = 0
+					}
+
+				}
+				xdata = xdata + "Length  " + strconv.Itoa(m) + ":" + strconv.Itoa(sc) + " <BR>"
+				//-------------------------------------------------------------------------------------------------
+				bdata = []byte(exefilea + " -i " + tnfile + " -show_entries stream=r_frame_rate  -of xml" + ">tmp.xml")
+				err = os.WriteFile(bfile, bdata, 0644)
+				cmd = exec.Command(bfile)
+				if err = cmd.Run(); err != nil {
+					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+				}
+				dat = []byte("")
+				dat, err = os.ReadFile("tmp.xml")
+				tdata = string(dat)
+
+				//tmp = strings.Split(tdata, " ")
+				//fmt.Println(tmp[0])
+				//tmpa = strings.Split(tmp[0], ",")
+				//fmt.Println(tmpa)
+				//numerator, _ := strconv.Atoi(tmpa[0])
+				//denominator, _ := strconv.Atoi(tmpa[1])
+				//				fmt.Println(numerator)
+				//				fmt.Println(denominator)
+				//				if denominator > 0 {
+				//					fps := numerator / denominator
+				//					fmt.Printf("The frame rate is: %.2f fps\n", fps)
+				//		}
+				xdata = xdata + "Frames per second  " + tdata + " <BR>"
+				//-------------------------------------------------------------------------------------------------
+
+				xdata = xdata + "<BR><BR>"
 
 			}
 		}
