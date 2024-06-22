@@ -16,6 +16,7 @@ import (
 func main() {
 	fmt.Printf("ffmpeg Parser - (c) Copyright Com1Software 1992-2024\n")
 	fmt.Printf("Operating System : %s\n", runtime.GOOS)
+
 	exefile := "/ffmpeg/bin/ffmpeg.exe"
 	exefilea := "/ffmpeg/bin/ffprobe.exe"
 	drive := "c"
@@ -104,20 +105,9 @@ func main() {
 				dat = []byte("")
 				dat, err = os.ReadFile("tmp.xml")
 				tdata = string(dat)
-
-				//tmp = strings.Split(tdata, " ")
-				//fmt.Println(tmp[0])
-				//tmpa = strings.Split(tmp[0], ",")
-				//fmt.Println(tmpa)
-				//numerator, _ := strconv.Atoi(tmpa[0])
-				//denominator, _ := strconv.Atoi(tmpa[1])
-				//				fmt.Println(numerator)
-				//				fmt.Println(denominator)
-				//				if denominator > 0 {
-				//					fps := numerator / denominator
-				//					fmt.Printf("The frame rate is: %.2f fps\n", fps)
-				//		}
-				xdata = xdata + "Frames per second  " + tdata + " <BR>"
+				tagdata := ParseXMLTag(tdata, "<stream r_frame_rate=", 1)
+				//				fmt.Printf("Tag data %s\n", tagdata)
+				xdata = xdata + "Frames per second  " + tagdata + " <BR>"
 				//-------------------------------------------------------------------------------------------------
 
 				xdata = xdata + "<BR><BR>"
@@ -188,5 +178,100 @@ func ValidFileType(fileExt string) bool {
 	case fileExt == ".wmv":
 		rtn = true
 	}
+	return rtn
+}
+
+func ParseXMLTag(xml string, tag string, pos int) string {
+	rtn := ""
+	chr := ""
+	ton := false
+	ttag := ""
+	tdata := ""
+	do := false
+	dopos := 0
+	vpos := 1
+	v1 := 0
+	v2 := 0
+	v3 := 0
+	v4 := 0
+
+	for x := 0; x < len(xml); x++ {
+		chr = xml[x : x+1]
+		if chr == "<" {
+			ton = true
+			ttag = ""
+		}
+		if chr == ">" {
+			ton = false
+		}
+		if ton {
+			ttag = ttag + chr
+		}
+		if ttag == tag {
+			tdata = ""
+			for xx := x; xx < len(xml); xx++ {
+				chr = xml[xx : xx+1]
+				fmt.Printf(chr)
+				if chr == ">" {
+					xx = len(xml)
+				}
+				if strings.Contains(chr, `"`) && do == false {
+					do = true
+					dopos = xx
+
+				}
+
+				//if strings.Contains(chr, `"`) && do == true {
+				//	fmt.Printf("Quote True %d \n", vpos)
+				//	do = false
+				//	dopos = xx
+				//	switch {
+				//	case vpos == 1:
+				//		v1, _ = strconv.Atoi(tdata)
+				//	case vpos == 2:
+				//		v2, _ = strconv.Atoi(tdata)
+				//	case vpos == 3:
+				//		v3, _ = strconv.Atoi(tdata)
+				//	case vpos == 4:
+				//		v4, _ = strconv.Atoi(tdata)
+				//	}
+				//				}
+
+				if strings.Contains(chr, `/`) && do == true {
+					do = false
+					switch {
+					case vpos == 1:
+						v1, _ = strconv.Atoi(tdata)
+					case vpos == 2:
+						v2, _ = strconv.Atoi(tdata)
+					case vpos == 3:
+						v3, _ = strconv.Atoi(tdata)
+					case vpos == 4:
+						v4, _ = strconv.Atoi(tdata)
+					}
+
+					tdata = ""
+					vpos++
+					dopos = xx
+				}
+				if do && xx > dopos {
+					tdata = tdata + chr
+				}
+			}
+			fmt.Printf("\n %d %d %d %d \n", v1, v2, v3, v4)
+			rtn = tdata
+
+		}
+	}
+
+	//numerator, _ := strconv.Atoi(tmpa[0])
+	//denominator, _ := strconv.Atoi(tmpa[1])
+	//				fmt.Println(numerator)
+	//				fmt.Println(denominator)
+	//				if denominator > 0 {
+	//					fps := numerator / denominator
+	//					fmt.Printf("The frame rate is: %.2f fps\n", fps)
+	//		}
+
 	return rtn
 }
