@@ -11,6 +11,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	asciistring "github.com/Com1Software/Go-ASCII-String-Package"
 )
 
 func main() {
@@ -96,18 +98,18 @@ func main() {
 				}
 				xdata = xdata + "Length  " + strconv.Itoa(m) + ":" + strconv.Itoa(sc) + " <BR>"
 				//-------------------------------------------------------------------------------------------------
-				bdata = []byte(exefilea + " -i " + tnfile + " -show_entries stream=r_frame_rate  -of xml" + ">tmp.xml")
+				bdata = []byte(exefilea + " -i " + tnfile + " -show_entries stream=r_frame_rate  -of csv" + ">tmp.csv")
+
 				err = os.WriteFile(bfile, bdata, 0644)
 				cmd = exec.Command(bfile)
 				if err = cmd.Run(); err != nil {
 					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
 				}
 				dat = []byte("")
-				dat, err = os.ReadFile("tmp.xml")
+				dat, err = os.ReadFile("tmp.csv")
 				tdata = string(dat)
-				tagdata := ParseXMLTag(tdata, "<stream r_frame_rate=", 1)
-				//				fmt.Printf("Tag data %s\n", tagdata)
-				xdata = xdata + "Frames per second  " + tagdata + " <BR>"
+				fr := ParseFrameRate(tdata)
+				xdata = xdata + "Frames per second  " + fr + " <BR>"
 				//-------------------------------------------------------------------------------------------------
 
 				xdata = xdata + "<BR><BR>"
@@ -181,97 +183,56 @@ func ValidFileType(fileExt string) bool {
 	return rtn
 }
 
-func ParseXMLTag(xml string, tag string, pos int) string {
+func ParseFrameRate(data string) string {
 	rtn := ""
 	chr := ""
-	ton := false
-	ttag := ""
-	tdata := ""
 	do := false
-	dopos := 0
-	vpos := 1
-	v1 := 0
-	v2 := 0
-	v3 := 0
-	v4 := 0
+	pass := 1
+	v1 := ""
+	v2 := ""
+	add := true
+	ascval := 0
+	for x := 0; x < len(data); x++ {
+		chr = data[x : x+1]
+		add = true
+		ascval = asciistring.StringToASCII(chr)
+		if ascval == 13 {
+			add = false
 
-	for x := 0; x < len(xml); x++ {
-		chr = xml[x : x+1]
-		if chr == "<" {
-			ton = true
-			ttag = ""
+			numerator, _ := strconv.Atoi(v1)
+			denominator, _ := strconv.Atoi(v2)
+			if denominator > 0 {
+				fps := numerator / denominator
+				// fmt.Printf("The frame rate is: %.2f fps\n", fps)
+				rtn = strconv.Itoa(fps)
+			}
 		}
-		if chr == ">" {
-			ton = false
+		if ascval == 10 {
+			add = false
+			pass = 1
+			do = false
 		}
-		if ton {
-			ttag = ttag + chr
+
+		if chr == "," {
+			do = true
+			add = false
 		}
-		if ttag == tag {
-			tdata = ""
-			for xx := x; xx < len(xml); xx++ {
-				chr = xml[xx : xx+1]
-				fmt.Printf(chr)
-				if chr == ">" {
-					xx = len(xml)
+		if chr == "/" {
+			pass = 2
+			add = false
+		}
+		if do {
+			if add {
+				if pass == 1 {
+					v1 = v1 + chr
 				}
-				if strings.Contains(chr, `"`) && do == false {
-					do = true
-					dopos = xx
-
-				}
-
-				//if strings.Contains(chr, `"`) && do == true {
-				//	fmt.Printf("Quote True %d \n", vpos)
-				//	do = false
-				//	dopos = xx
-				//	switch {
-				//	case vpos == 1:
-				//		v1, _ = strconv.Atoi(tdata)
-				//	case vpos == 2:
-				//		v2, _ = strconv.Atoi(tdata)
-				//	case vpos == 3:
-				//		v3, _ = strconv.Atoi(tdata)
-				//	case vpos == 4:
-				//		v4, _ = strconv.Atoi(tdata)
-				//	}
-				//				}
-
-				if strings.Contains(chr, `/`) && do == true {
-					do = false
-					switch {
-					case vpos == 1:
-						v1, _ = strconv.Atoi(tdata)
-					case vpos == 2:
-						v2, _ = strconv.Atoi(tdata)
-					case vpos == 3:
-						v3, _ = strconv.Atoi(tdata)
-					case vpos == 4:
-						v4, _ = strconv.Atoi(tdata)
-					}
-
-					tdata = ""
-					vpos++
-					dopos = xx
-				}
-				if do && xx > dopos {
-					tdata = tdata + chr
+				if pass == 2 {
+					v2 = v2 + chr
 				}
 			}
-			fmt.Printf("\n %d %d %d %d \n", v1, v2, v3, v4)
-			rtn = tdata
 
 		}
+
 	}
-
-	//numerator, _ := strconv.Atoi(tmpa[0])
-	//denominator, _ := strconv.Atoi(tmpa[1])
-	//				fmt.Println(numerator)
-	//				fmt.Println(denominator)
-	//				if denominator > 0 {
-	//					fps := numerator / denominator
-	//					fmt.Printf("The frame rate is: %.2f fps\n", fps)
-	//		}
-
 	return rtn
 }
