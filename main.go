@@ -70,14 +70,14 @@ func main() {
 				xdata = xdata + "Frame height " + tmp[1] + "<BR>"
 
 				//-------------------------------------------------------------------------------------------------
-				bdata = []byte(exefilea + " -i " + tnfile + " -show_entries format=duration -v quiet -of csv >tmp.txt")
+				bdata = []byte(exefilea + " -i " + tnfile + " -show_entries format=duration -v quiet -of csv >tmp.csv")
 				err = os.WriteFile(bfile, bdata, 0644)
 				cmd = exec.Command(bfile)
 				if err = cmd.Run(); err != nil {
 					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
 				}
 				dat = []byte("")
-				dat, err = os.ReadFile("tmp.txt")
+				dat, err = os.ReadFile("tmp.csv")
 				tdata = string(dat)
 				tmp = strings.Split(tdata, ",")
 				tmpa := strings.Split(tmp[1], ".")
@@ -110,8 +110,19 @@ func main() {
 				tdata = string(dat)
 				fr := ParseFrameRate(tdata)
 				xdata = xdata + "Frames per second  " + fr + " <BR>"
-				//-------------------------------------------------------------------------------------------------
 
+				//-------------------------------------------------------------------------------------------------
+				bdata = []byte(exefilea + " -i " + tnfile + "  -show_entries stream=bit_rate -v quiet -of csv >tmp.csv")
+				err = os.WriteFile(bfile, bdata, 0644)
+				cmd = exec.Command(bfile)
+				if err = cmd.Run(); err != nil {
+					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+				}
+				dat = []byte("")
+				dat, err = os.ReadFile("tmp.csv")
+				tdata = string(dat)
+				br := ParseBitRate(tdata)
+				xdata = xdata + "Bit Rate " + br + " <BR>"
 				xdata = xdata + "<BR><BR>"
 
 			}
@@ -198,7 +209,6 @@ func ParseFrameRate(data string) string {
 		ascval = asciistring.StringToASCII(chr)
 		if ascval == 13 {
 			add = false
-
 			numerator, _ := strconv.Atoi(v1)
 			denominator, _ := strconv.Atoi(v2)
 			if denominator > 0 {
@@ -212,7 +222,6 @@ func ParseFrameRate(data string) string {
 			pass = 1
 			do = false
 		}
-
 		if chr == "," {
 			do = true
 			add = false
@@ -230,9 +239,41 @@ func ParseFrameRate(data string) string {
 					v2 = v2 + chr
 				}
 			}
-
 		}
+	}
+	return rtn
+}
 
+func ParseBitRate(data string) string {
+	rtn := ""
+	chr := ""
+	do := false
+	add := true
+	pass := 1
+	ascval := 0
+	for x := 0; x < len(data); x++ {
+		chr = data[x : x+1]
+		add = true
+		ascval = asciistring.StringToASCII(chr)
+		if ascval == 13 {
+			add = false
+		}
+		if ascval == 10 {
+			add = false
+			do = false
+			pass = 2
+		}
+		if chr == "," {
+			do = true
+			add = false
+		}
+		if do {
+			if add {
+				if pass == 2 {
+					rtn = rtn + chr
+				}
+			}
+		}
 	}
 	return rtn
 }
