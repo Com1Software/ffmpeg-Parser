@@ -147,10 +147,23 @@ func fileNameWithoutExtension(fileName string) string {
 
 func fixFileName(fileName string) string {
 	newName := ""
-	tmp := strings.Split(fileName, " ")
-	for x := 0; x < len(tmp); x++ {
-		newName = newName + tmp[x]
+	chr := ""
+	ascval := 0
+
+	for x := 0; x < len(fileName); x++ {
+		chr = fileName[x : x+1]
+		ascval = asciistring.StringToASCII(chr)
+		switch {
+		case ascval < 45:
+		case ascval == 64:
+		case ascval == 92:
+		case ascval == 96:
+		case ascval > 122:
+		default:
+			newName = newName + chr
+		}
 	}
+
 	err := os.Rename(fileName, newName)
 	if err != nil {
 		fmt.Println("Error renaming file:", err)
