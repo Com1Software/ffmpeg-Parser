@@ -56,14 +56,14 @@ func main() {
 				xdata = xdata + "  <A HREF='file:///" + tnfile + "'>  [ " + file.Name() + " ] <BR> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "1.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "2.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "3.png" + "  ALT=error> </A><BR> "
 				//-------------------------------------------------------------------------------------------------
 				bfile := "tmp.bat"
-				bdata := []byte(exefilea + " -i " + tnfile + " -show_entries stream=width,height -of csv=" + fmt.Sprintf("%q", "p=0") + ">tmp.txt")
+				bdata := []byte(exefilea + " -i " + tnfile + " -show_entries stream=width,height -of csv=" + fmt.Sprintf("%q", "p=0") + ">tmp.csv")
 				err := os.WriteFile(bfile, bdata, 0644)
 				cmd = exec.Command(bfile)
 				if err = cmd.Run(); err != nil {
 					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
 				}
 				dat := []byte("")
-				dat, err = os.ReadFile("tmp.txt")
+				dat, err = os.ReadFile("tmp.csv")
 				tdata := string(dat)
 				tmp := strings.Split(tdata, ",")
 				xdata = xdata + "Frame width " + tmp[0] + "<BR>"
