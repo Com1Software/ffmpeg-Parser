@@ -41,89 +41,9 @@ func main() {
 			if ValidFileType(strings.ToLower(path.Ext(file.Name()))) {
 				tfile := wdir + file.Name()
 				tnfile := fixFileName(tfile)
-				cmd := exec.Command(exefile, "-ss", "00:00:01", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"1.png")
-				if err := cmd.Run(); err != nil {
-					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
-				}
-				cmd = exec.Command(exefile, "-ss", "00:00:10", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"2.png")
-				if err := cmd.Run(); err != nil {
-					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
-				}
-				cmd = exec.Command(exefile, "-ss", "00:00:20", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"3.png")
-				if err := cmd.Run(); err != nil {
-					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
-				}
-				xdata = xdata + "  <A HREF='file:///" + tnfile + "'>  [ " + file.Name() + " ] <BR> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "1.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "2.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "3.png" + "  ALT=error> </A><BR> "
+				xdata = xdata + BasicDisplay(exefile, tnfile, file.Name())
+				xdata = xdata + FileData(exefilea, tnfile, file.Name())
 				//-------------------------------------------------------------------------------------------------
-				bfile := "tmp.bat"
-				bdata := []byte(exefilea + " -i " + tnfile + " -show_entries stream=width,height -of csv=" + fmt.Sprintf("%q", "p=0") + ">tmp.csv")
-				err := os.WriteFile(bfile, bdata, 0644)
-				cmd = exec.Command(bfile)
-				if err = cmd.Run(); err != nil {
-					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
-				}
-				dat := []byte("")
-				dat, err = os.ReadFile("tmp.csv")
-				tdata := string(dat)
-				tmp := strings.Split(tdata, ",")
-				xdata = xdata + "Frame width " + tmp[0] + "<BR>"
-				xdata = xdata + "Frame height " + tmp[1] + "<BR>"
-
-				//-------------------------------------------------------------------------------------------------
-				bdata = []byte(exefilea + " -i " + tnfile + " -show_entries format=duration -v quiet -of csv >tmp.csv")
-				err = os.WriteFile(bfile, bdata, 0644)
-				cmd = exec.Command(bfile)
-				if err = cmd.Run(); err != nil {
-					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
-				}
-				dat = []byte("")
-				dat, err = os.ReadFile("tmp.csv")
-				tdata = string(dat)
-				tmp = strings.Split(tdata, ",")
-				tmpa := strings.Split(tmp[1], ".")
-				t := tmpa[0]
-				i, _ := strconv.Atoi(t)
-				mc := 0
-				m := 0
-				sc := 0
-				for x := 0; x < i; x++ {
-					mc++
-					sc++
-					if mc > 59 {
-						m++
-						mc = 0
-						sc = 0
-					}
-
-				}
-				xdata = xdata + "Length  " + strconv.Itoa(m) + ":" + strconv.Itoa(sc) + " <BR>"
-				//-------------------------------------------------------------------------------------------------
-				bdata = []byte(exefilea + " -i " + tnfile + " -show_entries stream=r_frame_rate  -of csv" + ">tmp.csv")
-
-				err = os.WriteFile(bfile, bdata, 0644)
-				cmd = exec.Command(bfile)
-				if err = cmd.Run(); err != nil {
-					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
-				}
-				dat = []byte("")
-				dat, err = os.ReadFile("tmp.csv")
-				tdata = string(dat)
-				fr := ParseFrameRate(tdata)
-				xdata = xdata + "Frames per second  " + fr + " <BR>"
-
-				//-------------------------------------------------------------------------------------------------
-				bdata = []byte(exefilea + " -i " + tnfile + "  -show_entries stream=bit_rate -v quiet -of csv >tmp.csv")
-				err = os.WriteFile(bfile, bdata, 0644)
-				cmd = exec.Command(bfile)
-				if err = cmd.Run(); err != nil {
-					fmt.Printf("Command %s \n Error: %s\n", cmd, err)
-				}
-				dat = []byte("")
-				dat, err = os.ReadFile("tmp.csv")
-				tdata = string(dat)
-				br := ParseBitRate(tdata)
-				xdata = xdata + "Bit Rate " + br + " <BR>"
-				xdata = xdata + "<BR><BR>"
 
 			}
 		}
@@ -289,4 +209,98 @@ func ParseBitRate(data string) string {
 		}
 	}
 	return rtn
+}
+
+func FileData(exefilea string, tnfile string, fileName string) string {
+	xdata := ""
+	bfile := "tmp.bat"
+	bdata := []byte(exefilea + " -i " + tnfile + " -show_entries stream=width,height -of csv=" + fmt.Sprintf("%q", "p=0") + ">tmp.csv")
+	err := os.WriteFile(bfile, bdata, 0644)
+	cmd := exec.Command(bfile)
+	if err = cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	dat := []byte("")
+	dat, err = os.ReadFile("tmp.csv")
+	tdata := string(dat)
+	tmp := strings.Split(tdata, ",")
+	xdata = xdata + "Frame width " + tmp[0] + "<BR>"
+	xdata = xdata + "Frame height " + tmp[1] + "<BR>"
+
+	//-------------------------------------------------------------------------------------------------
+	bdata = []byte(exefilea + " -i " + tnfile + " -show_entries format=duration -v quiet -of csv >tmp.csv")
+	err = os.WriteFile(bfile, bdata, 0644)
+	cmd = exec.Command(bfile)
+	if err = cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	dat = []byte("")
+	dat, err = os.ReadFile("tmp.csv")
+	tdata = string(dat)
+	tmp = strings.Split(tdata, ",")
+	tmpa := strings.Split(tmp[1], ".")
+	t := tmpa[0]
+	i, _ := strconv.Atoi(t)
+	mc := 0
+	m := 0
+	sc := 0
+	for x := 0; x < i; x++ {
+		mc++
+		sc++
+		if mc > 59 {
+			m++
+			mc = 0
+			sc = 0
+		}
+
+	}
+	xdata = xdata + "Length  " + strconv.Itoa(m) + ":" + strconv.Itoa(sc) + " <BR>"
+	//-------------------------------------------------------------------------------------------------
+	bdata = []byte(exefilea + " -i " + tnfile + " -show_entries stream=r_frame_rate  -of csv" + ">tmp.csv")
+
+	err = os.WriteFile(bfile, bdata, 0644)
+	cmd = exec.Command(bfile)
+	if err = cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	dat = []byte("")
+	dat, err = os.ReadFile("tmp.csv")
+	tdata = string(dat)
+	fr := ParseFrameRate(tdata)
+	xdata = xdata + "Frames per second  " + fr + " <BR>"
+
+	//-------------------------------------------------------------------------------------------------
+	bdata = []byte(exefilea + " -i " + tnfile + "  -show_entries stream=bit_rate -v quiet -of csv >tmp.csv")
+	err = os.WriteFile(bfile, bdata, 0644)
+	cmd = exec.Command(bfile)
+	if err = cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	dat = []byte("")
+	dat, err = os.ReadFile("tmp.csv")
+	tdata = string(dat)
+	br := ParseBitRate(tdata)
+	xdata = xdata + "Bit Rate " + br + " <BR>"
+	xdata = xdata + "<BR><BR>"
+
+	return xdata
+}
+
+func BasicDisplay(exefile string, tnfile string, fileName string) string {
+	xdata := ""
+	cmd := exec.Command(exefile, "-ss", "00:00:01", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"1.png")
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	cmd = exec.Command(exefile, "-ss", "00:00:10", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"2.png")
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	cmd = exec.Command(exefile, "-ss", "00:00:20", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"3.png")
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	xdata = xdata + "  <A HREF='file:///" + tnfile + "'>  [ " + fileName + " ] <BR> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "1.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "2.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "3.png" + "  ALT=error> </A><BR> "
+	//-------------------------------------------------------------------------------------------------
+	return xdata
 }
