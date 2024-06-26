@@ -24,6 +24,7 @@ func main() {
 	drive := "c"
 	wdir := drive + ":/tmp/"
 	xpage := "ffmpeg-parse.htm"
+	display := 0
 	if _, err := os.Stat(exefile); err == nil {
 		fmt.Printf("- Parser Detected")
 		files, err := ioutil.ReadDir(wdir)
@@ -33,6 +34,24 @@ func main() {
 		xdata := "<!DOCTYPE html>"
 		xdata = xdata + "<html>"
 		xdata = xdata + "<head>"
+		switch {
+		case display == 1:
+			xdata = xdata + "<meta name='viewport' content='width=device-width, initial-scale=1'>"
+
+			xdata = xdata + "<style>"
+			xdata = xdata + "div.scroll-container {"
+			xdata = xdata + "background-color: #333;"
+			xdata = xdata + "overflow: auto;"
+			xdata = xdata + "white-space: nowrap;"
+			xdata = xdata + "padding: 10px;"
+			xdata = xdata + "}"
+			xdata = xdata + "div.scroll-container img {"
+			xdata = xdata + "padding: 10px;"
+			xdata = xdata + "}"
+			xdata = xdata + "</style>"
+
+		}
+
 		xdata = xdata + "<title>ffmpeg Parse for " + wdir + "</title>"
 		xdata = xdata + "</head>"
 		xdata = xdata + "<body>"
@@ -41,7 +60,12 @@ func main() {
 			if ValidFileType(strings.ToLower(path.Ext(file.Name()))) {
 				tfile := wdir + file.Name()
 				tnfile := fixFileName(tfile)
-				xdata = xdata + BasicDisplay(exefile, tnfile, file.Name())
+				switch {
+				case display == 0:
+					xdata = xdata + BasicDisplay(exefile, tnfile, file.Name())
+				case display == 1:
+					xdata = xdata + ImageScrollDisplay(exefile, tnfile, file.Name())
+				}
 				xdata = xdata + FileData(exefilea, tnfile, file.Name())
 				//-------------------------------------------------------------------------------------------------
 
@@ -301,6 +325,32 @@ func BasicDisplay(exefile string, tnfile string, fileName string) string {
 		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
 	}
 	xdata = xdata + "  <A HREF='file:///" + tnfile + "'>  [ " + fileName + " ] <BR> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "1.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "2.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "3.png" + "  ALT=error> </A><BR> "
+	//-------------------------------------------------------------------------------------------------
+	return xdata
+}
+
+func ImageScrollDisplay(exefile string, tnfile string, fileName string) string {
+	xdata := ""
+	cmd := exec.Command(exefile, "-ss", "00:00:01", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"1.png")
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	cmd = exec.Command(exefile, "-ss", "00:00:10", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"2.png")
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	cmd = exec.Command(exefile, "-ss", "00:00:20", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"3.png")
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	//xdata = xdata + "  <A HREF='file:///" + tnfile + "'>  [ " + fileName + " ] <BR> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "1.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "2.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "3.png" + "  ALT=error> </A><BR> "
+
+	xdata = xdata + "<div class='scroll-container'>"
+	xdata = xdata + "<img src= " + fileNameWithoutExtension(tnfile) + "1.png allt='test' width='128' height='96'>"
+	xdata = xdata + "<img src= " + fileNameWithoutExtension(tnfile) + "2.png allt='test' width='128' height='96'>"
+	xdata = xdata + "<img src= " + fileNameWithoutExtension(tnfile) + "3.png allt='test' width='128' height='96'>"
+	xdata = xdata + "</div>"
+
 	//-------------------------------------------------------------------------------------------------
 	return xdata
 }
