@@ -21,16 +21,14 @@ func main() {
 
 	exefile := "/ffmpeg/bin/ffmpeg.exe"
 	exefilea := "/ffmpeg/bin/ffprobe.exe"
-	drive := "c"
-	wdir := drive + ":/tmp/"
+	drive := "d"
+	wdir := drive + ":/dwhelper/"
+	subdir := true
 	xpage := "ffmpeg-parse.htm"
 	display := 0
 	if _, err := os.Stat(exefile); err == nil {
 		fmt.Printf("- Parser Detected")
-		files, err := ioutil.ReadDir(wdir)
-		if err != nil {
-			log.Fatal(err)
-		}
+
 		xdata := "<!DOCTYPE html>"
 		xdata = xdata + "<html>"
 		xdata = xdata + "<head>"
@@ -56,6 +54,10 @@ func main() {
 		xdata = xdata + "</head>"
 		xdata = xdata + "<body>"
 		xdata = xdata + "<H1>ffmpeg Parse for " + wdir + "</H1>"
+		files, err := ioutil.ReadDir(wdir)
+		if err != nil {
+			log.Fatal(err)
+		}
 		for _, file := range files {
 			if ValidFileType(strings.ToLower(path.Ext(file.Name()))) {
 				tfile := wdir + file.Name()
@@ -68,6 +70,39 @@ func main() {
 				}
 				xdata = xdata + FileData(exefilea, tnfile, file.Name())
 				//-------------------------------------------------------------------------------------------------
+
+			}
+		}
+
+		if subdir {
+			entries, err := os.ReadDir(wdir + "./")
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			for _, e := range entries {
+				fmt.Println(e.Name())
+				files, err = ioutil.ReadDir(wdir + e.Name())
+				if err != nil {
+					log.Fatal(err)
+				}
+				for _, file := range files {
+					if ValidFileType(strings.ToLower(path.Ext(file.Name()))) {
+						tfile := wdir + e.Name() + "/" + file.Name()
+						tnfile := fixFileName(tfile)
+						fmt.Println(tnfile)
+						xdata = xdata + "[" + e.Name() + "]<BR>"
+						switch {
+						case display == 0:
+							xdata = xdata + BasicDisplay(exefile, tnfile, file.Name())
+						case display == 1:
+							xdata = xdata + ImageScrollDisplay(exefile, tnfile, file.Name())
+						}
+						xdata = xdata + FileData(exefilea, tnfile, file.Name())
+						//-------------------------------------------------------------------------------------------------
+
+					}
+				}
 
 			}
 		}
