@@ -21,8 +21,8 @@ func main() {
 
 	exefile := "/ffmpeg/bin/ffmpeg.exe"
 	exefilea := "/ffmpeg/bin/ffprobe.exe"
-	drive := "d"
-	wdir := drive + ":/dwhelper/"
+	drive := "c"
+	wdir := drive + ":/tmp/"
 	subdir := true
 	xpage := "ffmpeg-parse.htm"
 	display := 0
