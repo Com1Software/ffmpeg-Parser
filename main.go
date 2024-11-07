@@ -58,13 +58,15 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
+		pfc := 0
 		for _, file := range files {
 			if ValidFileType(strings.ToLower(path.Ext(file.Name()))) {
+				pfc++
 				tfile := wdir + file.Name()
 				tnfile := fixFileName(tfile)
 				switch {
 				case display == 0:
-					xdata = xdata + BasicDisplay(exefile, tnfile, file.Name())
+					xdata = xdata + BasicDisplay(exefile, exefilea, tnfile, file.Name(), pfc)
 				case display == 1:
 					xdata = xdata + ImageScrollDisplay(exefile, tnfile, file.Name())
 				}
@@ -88,13 +90,14 @@ func main() {
 				}
 				for _, file := range files {
 					if ValidFileType(strings.ToLower(path.Ext(file.Name()))) {
+						pfc++
 						tfile := wdir + e.Name() + "/" + file.Name()
 						tnfile := fixFileName(tfile)
 						fmt.Println(tnfile)
 						xdata = xdata + "[" + e.Name() + "]<BR>"
 						switch {
 						case display == 0:
-							xdata = xdata + BasicDisplay(exefile, tnfile, file.Name())
+							xdata = xdata + BasicDisplay(exefile, exefilea, tnfile, file.Name(), pfc)
 						case display == 1:
 							xdata = xdata + ImageScrollDisplay(exefile, tnfile, file.Name())
 						}
@@ -345,21 +348,120 @@ func FileData(exefilea string, tnfile string, fileName string) string {
 	return xdata
 }
 
-func BasicDisplay(exefile string, tnfile string, fileName string) string {
+func TimePosition(exefilea string, tnfile string, ctl int) string {
 	xdata := ""
-	cmd := exec.Command(exefile, "-ss", "00:00:01", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"1.png")
+	bfile := "tmp.bat"
+	//-------------------------------------------------------------------------------------------------
+	bdata := []byte(exefilea + " -i " + tnfile + " -show_entries format=duration -v quiet -of csv >tmp.csv")
+	err := os.WriteFile(bfile, bdata, 0644)
+	cmd := exec.Command(bfile)
+	if err = cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	dat := []byte("")
+	dat, err = os.ReadFile("tmp.csv")
+	tdata := string(dat)
+	tmp := strings.Split(tdata, ",")
+	tmpa := strings.Split(tmp[1], ".")
+	t := tmpa[0]
+	i, _ := strconv.Atoi(t)
+	mc := 0
+	m := 0
+	sc := 0
+	for x := 0; x < i; x++ {
+		mc++
+		sc++
+		if mc > 59 {
+			m++
+			mc = 0
+			sc = 0
+		}
+
+	}
+	if m < 2 {
+		xdata = "00:00:10"
+	} else {
+		if m < 60 {
+			nt := m / 2
+			switch {
+			case ctl == 1:
+				ntt := nt / 2
+				nttt := ntt / 2
+				ntttt := nttt / 2
+				nt = nt - ntt
+				nt = nt - nttt
+				nt = nt - ntttt
+			case ctl == 2:
+				ntt := nt / 2
+				nttt := ntt / 2
+				nt = nt - ntt
+				nt = nt - nttt
+			case ctl == 3:
+				ntt := nt / 2
+				nt = nt - ntt
+			case ctl == 4:
+				ntt := nt / 2
+				nt = nt + ntt
+			case ctl == 5:
+				ntt := nt / 2
+				nttt := ntt / 2
+				nt = nt + ntt
+				nt = nt + nttt
+			case ctl == 6:
+				ntt := nt / 2
+				nttt := ntt / 2
+				ntttt := nttt / 2
+				nt = nt + ntt
+				nt = nt + nttt
+				nt = nt + ntttt
+			}
+			if nt > 9 {
+				xdata = "00:" + strconv.Itoa(nt) + ":00"
+			} else {
+				xdata = "00:0" + strconv.Itoa(nt) + ":00"
+			}
+		} else {
+			xdata = "00:59:00"
+		}
+	}
+
+	return xdata
+}
+
+func BasicDisplay(exefile string, exefilea string, tnfile string, fileName string, pfc int) string {
+	xdata := ""
+	tp := TimePosition(exefilea, tnfile, 1)
+	cmd := exec.Command(exefile, "-ss", tp, "-i", tnfile, "-vframes", "100", "-s", "128x96", "static/"+fileNameWithoutExtension(fileName)+"-1.png")
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
 	}
-	cmd = exec.Command(exefile, "-ss", "00:00:10", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"2.png")
+	tp = TimePosition(exefilea, tnfile, 2)
+	cmd = exec.Command(exefile, "-ss", tp, "-i", tnfile, "-vframes", "100", "-s", "128x96", "static/"+fileNameWithoutExtension(fileName)+"-2.png")
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
 	}
-	cmd = exec.Command(exefile, "-ss", "00:00:20", "-i", tnfile, "-vframes", "100", "-s", "128x96", fileNameWithoutExtension(tnfile)+"3.png")
+	tp = TimePosition(exefilea, tnfile, 3)
+	cmd = exec.Command(exefile, "-ss", tp, "-i", tnfile, "-vframes", "100", "-s", "128x96", "static/"+fileNameWithoutExtension(fileName)+"-3.png")
 	if err := cmd.Run(); err != nil {
 		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
 	}
-	xdata = xdata + "  <A HREF='file:///" + tnfile + "'>  [ " + fileName + " ] <BR> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "1.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "2.png" + "  ALT=error> <IMG SRC=" + fileNameWithoutExtension(tnfile) + "3.png" + "  ALT=error> </A><BR> "
+	tp = TimePosition(exefilea, tnfile, 4)
+	cmd = exec.Command(exefile, "-ss", tp, "-i", tnfile, "-vframes", "100", "-s", "128x96", "static/"+fileNameWithoutExtension(fileName)+"-4.png")
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	tp = TimePosition(exefilea, tnfile, 5)
+	cmd = exec.Command(exefile, "-ss", tp, "-i", tnfile, "-vframes", "100", "-s", "128x96", "static/"+fileNameWithoutExtension(fileName)+"-5.png")
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+	tp = TimePosition(exefilea, tnfile, 6)
+	cmd = exec.Command(exefile, "-ss", tp, "-i", tnfile, "-vframes", "100", "-s", "128x96", "static/"+fileNameWithoutExtension(fileName)+"-6.png")
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Command %s \n Error: %s\n", cmd, err)
+	}
+
+	xdata = xdata + "  <A HREF='file:///" + tnfile + "'>  [ " + fileName + " ] <BR> <IMG SRC=" + "static/" + fileNameWithoutExtension(fileName) + "-1.png" + "  ALT=error> <IMG SRC=" + "static/" + fileNameWithoutExtension(fileName) + "-2.png" + "  ALT=error> <IMG SRC=" + "static/" + fileNameWithoutExtension(fileName) + "-3.png" + "  ALT=error> <IMG SRC=" + "static/" + fileNameWithoutExtension(fileName) + "-4.png" + "  ALT=error> <IMG SRC=" + "static/" + fileNameWithoutExtension(fileName) + "-5.png" + "  ALT=error> <IMG SRC=" + "static/" + fileNameWithoutExtension(fileName) + "-6.png" + "  ALT=error> </A><BR> "
 	//-------------------------------------------------------------------------------------------------
 	return xdata
 }
